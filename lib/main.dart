@@ -1,23 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:pk_store/screens/HomePage.dart';
+import 'package:provider/provider.dart';
+
+import 'fooderlich_theme.dart';
+import 'models/models.dart';
+import 'navigation/app_router.dart';
 
 void main() {
-  runApp(const Main());
+  runApp(
+    const Fooderlich(),
+  );
 }
 
-class Main extends StatelessWidget {
-  const Main({Key? key}) : super(key: key);
+class Fooderlich extends StatefulWidget {
+  const Fooderlich({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  @override
+  _FooderlichState createState() => _FooderlichState();
+}
+
+class _FooderlichState extends State<Fooderlich> {
+  final _profileManager = ProfileManager();
+  final _appStateManager = AppStateManager();
+  late AppRouter _appRouter;
+
+  @override
+  void initState() {
+    super.initState();
+    _appRouter = AppRouter(
+      appStateManager: _appStateManager,
+      profileManager: _profileManager,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo2',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => _appStateManager,
+        ),
+        ChangeNotifierProvider(
+          create: (context) => _profileManager,
+        )
+      ],
+      child: Consumer<ProfileManager>(
+        builder: (context, profileManager, child) {
+          ThemeData theme;
+          if (profileManager.darkMode) {
+            theme = FooderlichTheme.dark();
+          } else {
+            theme = FooderlichTheme.light();
+          }
+
+          return MaterialApp(
+            theme: theme,
+            title: 'Fooderlich',
+            home: Router(
+              routerDelegate: _appRouter,
+              backButtonDispatcher: RootBackButtonDispatcher(),
+            ),
+          );
+        },
       ),
-      home: const Home(),
     );
   }
 }
